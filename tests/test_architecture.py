@@ -11,7 +11,8 @@ IO_MODULES = {"glob", "socket", "subprocess", "threading", "http", "urllib", "sh
 
 
 def imports_of(path):
-    tree = ast.parse(open(path).read())
+    with open(path) as f:
+        tree = ast.parse(f.read())
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
             for alias in node.names:

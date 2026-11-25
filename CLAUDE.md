@@ -11,9 +11,10 @@ Python 3.8+). Tests: `python3 -m unittest discover -s tests`.
   `tests/test_architecture.py` enforces the layering.
 - Feed schema: docs/FEED.md. Changing a field is a schema change: bump
   `SCHEMA_VERSION` and say so in every visualization repo.
-- Privacy: only tool names and short labels leave `feed.py` (basename, a Bash
-  command's own description, web host, subagent description). Never contents,
-  commands, prompts or paths. Fixtures are synthetic.
+- Privacy: only names, tool names, branches, basenames and short labels leave
+  the feed; every label goes through `labels.short_label`, which redacts
+  token-shaped strings. Bash and subagent descriptions are model free text.
+  Never contents, commands, prompts or paths. Fixtures are synthetic.
 - Server binds 127.0.0.1 only.
 - While the family is PRIVATE on dmccoystephenson, hosted Actions are refused
   (billing), so run localci on PRs (drop this line once the repos are public):

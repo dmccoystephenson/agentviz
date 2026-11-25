@@ -17,6 +17,8 @@ def pid_alive(pid) -> bool:
         return False
     if pid <= 0:
         return False
+    if os.name == "nt":
+        return True  # os.kill(pid, 0) sends CTRL_C_EVENT on Windows; assume alive
     try:
         os.kill(pid, 0)
     except ProcessLookupError:
