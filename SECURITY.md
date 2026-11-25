@@ -10,9 +10,12 @@
 
 From those it serves `/api/agents` (docs/FEED.md). Only these leave the
 process: session names, tool names, git branch names, a working directory's
-**basename**, and short labels (a file's basename, a Bash command's own
-one-line description, a web host, a subagent's description). File contents,
-commands, prompts, responses and full paths are never included.
+**basename**, and short labels (a file's basename, a web host, a Bash
+command's own one-line description, a subagent's description). The last two
+are the model's own words and can mention anything about the work;
+token-shaped strings in labels are replaced with `[redacted]`, but treat the
+feed as sensitive. File contents, commands, prompts, responses and full paths
+are never included.
 
 The server binds to 127.0.0.1 and answers only requests whose `Host` is
 127.0.0.1, localhost or [::1], so other machines and web pages using DNS

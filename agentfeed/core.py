@@ -70,13 +70,24 @@ def follower_stalled(finished, quiet_sec) -> bool:
 
 # ------------------------------------------------------------ session entries
 
+def _text_or_none(value) -> Optional[str]:
+    return value if isinstance(value, str) else None
+
+
+def _epoch_ms_or_zero(value):
+    """A registry timestamp as a number; anything else (a corrupt file) as 0."""
+    return value if isinstance(value, (int, float)) and not isinstance(value, bool) else 0
+
+
 def session_entry(record: SessionRecord, activity: Optional[Activity], now) -> dict:
-    """One session's feed entry."""
+    """One session's feed entry. Registry fields of the wrong type (a corrupt
+    or hand-edited file) are treated as missing rather than failing the feed."""
     raw = record.raw
     activity = activity or Activity()
     session_id = str(raw.get("sessionId") or raw.get("pid") or "?")
     place, place_label = place_of(raw.get("cwd") if isinstance(raw.get("cwd"), str) else "")
-    state = state_of(raw.get("status"), record.alive)
+    status = _text_or_none(raw.get("status"))
+    state = state_of(status, record.alive)
     current = activity.current
     tool_age = (current or {}).get("ageSec")
     idle = _idle_seconds(raw, tool_age, now)
@@ -84,9 +95,9 @@ def session_entry(record: SessionRecord, activity: Optional[Activity], now) -> d
     status_age = age_of_ms(raw.get("statusUpdatedAt") or raw.get("updatedAt"), now)
     return {
         "id": session_id,
-        "name": short_label(raw.get("name") or "%s-%s" % (place_label, session_id[:4]), 60),
+        "name": short_label(_text_or_none(raw.get("name")) or "%s-%s" % (place_label, session_id[:4]), 60),
         "state": state,
-        "status": raw.get("status"),
+        "status": status,
         "statusAgeSec": status_age,
         "uptimeSec": age_of_ms(raw.get("startedAt"), now),
         "idleSec": idle,
@@ -94,14 +105,14 @@ def session_entry(record: SessionRecord, activity: Optional[Activity], now) -> d
         "place": place,
         "placeLabel": place_label,
         "branch": activity.branch,
-        "kind": raw.get("kind"),
+        "kind": _text_or_none(raw.get("kind")),
         "fixture": bool(raw.get("_fixture")),
         "activity": current,
         "action": current_action(state, (current or {}).get("tool"), tool_age, active_followers),
         "recent": activity.recent,
         "followers": activity.followers,
         "seed": seed_of(session_id),
-        "startedAt": raw.get("startedAt") or 0,
+        "startedAt": _epoch_ms_or_zero(raw.get("startedAt")),
         "toolCount": activity.tool_count,
         "lastToolAt": activity.last_tool_at,
         "waitingSec": status_age if state == "waiting" else None,

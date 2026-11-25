@@ -77,11 +77,18 @@ are shown faded or absent. `dim` is a shell or unknown status.
 
 ## Privacy
 
-Labels are a file's basename, a Bash command's own `description`, a web
-host, or a subagent's description. Session names and git branch names are
-included as they are. Pages must render every string as text, never as HTML. Never file contents, commands, prompts or
-full paths; `cwd` itself is not in the document. The server binds to
-127.0.0.1 and refuses requests whose `Host` isn't local (see SECURITY.md). Fixtures are synthetic: never commit real transcript data or
+What leaves the feed: session names, tool names, git branch names, a working
+directory's basename (`place`), file basenames, and short free-text labels: a
+Bash command's own one-line description and a subagent's description. Those
+two are written by the model, so they can contain anything it chose to say
+about the work. Token-shaped strings in any label (API keys, GitHub, Slack and
+AWS tokens, `Bearer ...`, `password=...`, long hex) are replaced with
+`[redacted]` before they leave, but treat labels as sensitive anyway.
+
+Never included: file contents, commands, prompts, responses, full paths or the
+cwd itself. The server binds to 127.0.0.1 and refuses requests whose `Host`
+isn't local (see SECURITY.md). Pages must render every string as text, never
+as HTML. Fixtures are synthetic: never commit real transcript data or
 screenshots of a live feed.
 
 ## Fixture

@@ -120,3 +120,34 @@ class NewFields(unittest.TestCase):
         entry = core.summarize_followers([follower], NOW)[0]
         self.assertEqual((entry["finished"], entry["stalled"], entry["branch"], entry["startedAt"]),
                          (False, True, "fix/x", NOW - 1000))
+
+
+class Hardening(unittest.TestCase):
+    def test_malformed_registry_fields_do_not_break_the_feed(self):
+        broken = [SessionRecord({"sessionId": "a", "startedAt": "yesterday", "status": ["x"], "kind": 3,
+                                 "name": {"n": 1}}, True),
+                  record("b")]
+        doc = build_feed_from(FakeSessions(broken), FakeActivity({}), NOW)
+        by_id = {s["id"]: s for s in doc["sessions"]}
+        self.assertEqual((by_id["a"]["startedAt"], by_id["a"]["status"], by_id["a"]["state"], by_id["a"]["kind"]),
+                         (0, None, "dim", None))
+        self.assertEqual(by_id["a"]["name"], "home-a")
+
+
+class Redaction(unittest.TestCase):
+    def test_token_shaped_strings_are_redacted(self):
+        from agentfeed.labels import short_label, tool_label
+        cases = {
+            "curl -H 'Authorization: Bearer sk-ant-abcdef123456' https://x": "sk-ant",
+            "Push with ghp_abcdefghijklmnop1234": "ghp_",
+            "Export API_KEY=hunter2hunter2": "hunter2",
+            "Use key AKIAABCDEFGHIJKLMNOP": "AKIA",
+            "Check digest 0123456789abcdef0123456789abcdef": "0123456789abcdef0123",
+        }
+        for text, secret in cases.items():
+            label = tool_label("Bash", {"description": text})
+            self.assertNotIn(secret, label, text)
+            self.assertIn("[redacted]", label, text)
+        self.assertEqual(short_label("Run the test suite"), "Run the test suite")
+        self.assertEqual(tool_label("Read", {"file_path": "/w/test_architecture_layering_enforcement.py"}),
+                         "test_architecture_layering_enforcement.py")
