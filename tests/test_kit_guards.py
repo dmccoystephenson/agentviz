@@ -36,10 +36,12 @@ class GuardsTest(unittest.TestCase):
     def test_clean_repo_passes(self):
         root = make_repo({"web/page.js": "try { go(); } catch (e) { console.error(e); }\n",
                           "web/agentviz-hud.js": "el.innerHTML = x;\n",  # vendored: ignored
-                          "CLAUDE.md": "cd " + "/" + "root/localci\n"})       # allowed file
+                          "CLAUDE.md": "cd " + "/" + "root/localci\n",        # allowed file
+                          "web/x-engine.js": 'ENV={HOME:"' + "/" + 'home/web_user"}\n'})  # Emscripten's virtual FS
         self.assertEqual(run_guards(root), 0)
 
     def test_each_problem_is_caught(self):
         self.assertEqual(run_guards(make_repo({"web/page.js": "el.innerHTML = name;\n"})), 1)
         self.assertEqual(run_guards(make_repo({"web/page.js": "try { go(); } catch (e) {}\n"})), 1)
         self.assertEqual(run_guards(make_repo({"web/page.js": "ok\n", "README.md": "NODE_PATH=/" + "root/x\n"})), 1)
+        self.assertEqual(run_guards(make_repo({"web/page.js": "ok\n", "web/x-engine.js": "/" + "home/dan/build\n"})), 1)
