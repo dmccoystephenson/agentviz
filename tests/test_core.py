@@ -151,3 +151,45 @@ class Redaction(unittest.TestCase):
         self.assertEqual(short_label("Run the test suite"), "Run the test suite")
         self.assertEqual(tool_label("Read", {"file_path": "/w/test_architecture_layering_enforcement.py"}),
                          "test_architecture_layering_enforcement.py")
+
+
+class Hardening032(unittest.TestCase):
+    """From the public-readiness re-review (code lane)."""
+
+    def test_non_finite_and_oversized_registry_fields(self):
+        import json
+        raw = {"sessionId": "x" * 500, "startedAt": float("inf"), "status": "s" * 5000, "kind": "k" * 5000}
+        doc = build_feed_from(FakeSessions([SessionRecord(raw, True)]), FakeActivity({}), NOW)
+        json.dumps(doc, allow_nan=False)  # raises on NaN / Infinity
+        session = doc["sessions"][0]
+        self.assertEqual(session["startedAt"], 0)
+        self.assertLessEqual(len(session["id"]), 80)
+        self.assertLessEqual(len(session["status"]), 32)
+        self.assertLessEqual(len(session["kind"]), 32)
+
+    def test_more_secret_shapes_are_redacted(self):
+        from agentfeed.labels import tool_label
+        cases = {
+            "Use sk_live_abcdefghijklmnop": "sk_live_abc",
+            "Token eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0In0.c2lnbmF0dXJl": "eyJhbGci",
+            "curl https://user:hunter2pass@x.io/p": "hunter2pass",
+            "Run with PGPASSWORD=s3cr3t psql": "s3cr3t",
+            "GH_TOKEN=abcdef gh pr list": "abcdef",
+            "Call --token abc123def456": "abc123def456",
+            "Key AIzaSyA1234567890abcdefghij": "AIzaSy",
+            "Push with glpat-abcdefghijklmnopqrst": "glpat-",
+            "Publish npm_abcdefghijklmnopqrstuvwxyz12": "npm_abc",
+            "Paste -----BEGIN RSA PRIVATE KEY-----": "PRIVATE KEY",
+            "Set api key: abcdef123": "abcdef123",
+        }
+        for text, secret in cases.items():
+            label = tool_label("Bash", {"description": text})
+            self.assertNotIn(secret, label, text)
+        for ordinary in ("Run the test suite", "Check lane PRs", "Rebuild the token list UI"):
+            self.assertEqual(tool_label("Bash", {"description": ordinary}), ordinary)
+
+    def test_web_host_never_carries_userinfo(self):
+        from agentfeed.labels import tool_label
+        self.assertEqual(tool_label("WebFetch", {"url": "https://user:pw@internal.corp/x"}), "internal.corp")
+        self.assertEqual(tool_label("WebFetch", {"url": "https://example.com:8443/p?q=1"}), "example.com")
+        self.assertIsNone(tool_label("WebFetch", {"url": "file:///etc/passwd"}))
