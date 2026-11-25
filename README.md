@@ -4,15 +4,18 @@ Ten ways to watch Claude Code sessions and their subagents at work, drawn
 with [Strata](https://github.com/Preponderous-Software/strata), plus the
 shared feed they all read.
 
-Every visualization runs the same way:
+Every visualization runs the same way, with Python 3.8+ and nothing to install:
 
 ```bash
+git clone https://github.com/dmccoystephenson/agentviz-<name>
 cd agentviz-<name>
 python3 -m vendor.agentfeed serve --web web --port <port>            # live sessions
 python3 -m vendor.agentfeed serve --web web --port <port> --fixture  # demo feed
 ```
 
-then open `http://127.0.0.1:<port>/` (127.0.0.1 only; the feed describes real work).
+then open `http://127.0.0.1:<port>/`. Live mode reads your local Claude Code
+session files and shows names, states, tool names and short labels, never file
+contents or commands; see [SECURITY.md](SECURITY.md).
 
 ## The visualizations
 
@@ -45,14 +48,15 @@ Hero shots from each repo's demo feed (`?fixture=1`). Each repo's README has the
 | [**Orchestra**](https://github.com/dmccoystephenson/agentviz-orchestra) | [**War table**](https://github.com/dmccoystephenson/agentviz-wartable) |
 | [![Orchestra](docs/gallery/orchestra.jpg)](https://github.com/dmccoystephenson/agentviz-orchestra)<br>Conductors and musicians, action = instrument family, opt-in sound; waiting = spotlight on the solo chair | [![War table](docs/gallery/wartable.jpg)](https://github.com/dmccoystephenson/agentviz-wartable)<br>Banners and scouts on a candlelit map; waiting = beacon fire on a hill |
 
-All ten reached a playable MVP on 2026-11-24/25 (Strata 0.10.0 web kit, agentfeed schema v1), each merged with a localci PASS.
+All ten are built on the Strata 0.10.0 web kit and read agentfeed schema v1.
 
-The `/3d` session village in claude-code-dashboard is the ancestor of all of
-these; agentfeed is its data half without the layout.
+agentfeed began as the data half of an earlier session-village view, without
+its layout.
 
 ## agentfeed
 
-`agentfeed/` is a stdlib-only Python package: `build_feed()` turns
+`agentfeed/` is a standard-library-only Python package, built as a pure core
+behind two ports with one adapter per outside system. `build_feed()` turns
 `~/.claude/sessions` + transcripts into the document in
 [docs/FEED.md](docs/FEED.md); `python3 -m agentfeed serve` serves it next to a
 visualization's `web/` dir. Each visualization vendors a copy with
@@ -65,3 +69,9 @@ python3 -m unittest discover -s tests
 ```
 
 Building a scene: [docs/BUILDING.md](docs/BUILDING.md).
+
+## Licence
+
+Code: [MIT](LICENSE). Screenshots and GIFs in `docs/`: [CC0 1.0](LICENSE-media).
+The visualizations bundle the Strata engine (MIT) and its third-party
+libraries; each viz repo carries those notices.

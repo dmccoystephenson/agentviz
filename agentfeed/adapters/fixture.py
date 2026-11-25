@@ -8,6 +8,7 @@ import json
 import os
 from typing import List, Optional
 
+from ..core import follower_stalled
 from ..labels import seed_of
 from ..model import Activity, SessionRecord
 from ..ports.activity_source import ActivitySource
@@ -56,7 +57,20 @@ class FixtureFeed(SessionSource, ActivitySource):
         raw = record.raw
         followers = [dict(follower) for follower in raw.get("followers") or []]
         for follower in followers:
-            follower.setdefault("state", "active")
-            follower.setdefault("seed", seed_of(str(follower.get("id", ""))))
-        return Activity(current=raw.get("activity"), recent=list(raw.get("recent") or []),
-                        followers=followers, branch=raw.get("branch"))
+            _fill_follower_defaults(follower, raw.get("branch"), now)
+        current = raw.get("activity")
+        age = (current or {}).get("ageSec")
+        return Activity(current=current, recent=list(raw.get("recent") or []), followers=followers,
+                        branch=raw.get("branch"), tool_count=raw.get("toolCount", len(raw.get("recent") or [])),
+                        last_tool_at=(now - age) if isinstance(age, (int, float)) else None)
+
+
+def _fill_follower_defaults(follower, lead_branch, now):
+    """Fields a fixture follower may leave out, computed the way live ones are."""
+    follower.setdefault("state", "active")
+    follower.setdefault("seed", seed_of(str(follower.get("id", ""))))
+    follower.setdefault("finished", follower["state"] == "resting")
+    follower.setdefault("stalled", follower_stalled(follower["finished"], follower.get("quietSec") or 0))
+    follower.setdefault("branch", lead_branch)
+    started_ago = follower.pop("startedAgoSec", None)
+    follower.setdefault("startedAt", (now - started_ago) if isinstance(started_ago, (int, float)) else None)

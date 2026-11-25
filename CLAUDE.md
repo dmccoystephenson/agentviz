@@ -15,7 +15,7 @@ Python 3.8+). Tests: `python3 -m unittest discover -s tests`.
   command's own description, web host, subagent description). Never contents,
   commands, prompts or paths. Fixtures are synthetic.
 - Server binds 127.0.0.1 only.
-- All repos in the family are PRIVATE on dmccoystephenson. Hosted Actions are
-  refused for private personal repos (billing), so run localci on PRs:
+- While the family is PRIVATE on dmccoystephenson, hosted Actions are refused
+  (billing), so run localci on PRs (drop this line once the repos are public):
   `cd /root/localci && python3 -m localci pr dmccoystephenson/<repo> <N> --post --status`.
 - README table is the index: keep it in step with the repos.

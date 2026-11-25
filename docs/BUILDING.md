@@ -11,7 +11,7 @@ functions. The built files are committed so serving needs only Python.
 |---|---|
 | Strata | **0.10.0** wasm release (`strata-0.10.0-wasm32-emscripten.tar.gz`, kit 1.3, ABI 1.18) |
 | SHA-256 | `bb86b974c7e0309db91625ba5ee157273704c77d93f4338c8a63ee625e3d56de` |
-| emsdk | 6.0.11 at `/root/emsdk` (must match Strata's) |
+| emsdk | 6.0.11 (must match Strata's), activated or pointed to by `$EMSDK` |
 
 The tarball carries the kit in `kit/` (`build-kit.sh`, `strata_kit.h`,
 `strata-kit.js`, `strata-loader.js`, `example/`). Read its `WEB.md`,
@@ -20,9 +20,9 @@ section "The web kit", and copy the shape of `kit/example/`.
 ## Recipe
 
 ```bash
-. /root/agentviz/tools/emsdk-env.sh          # emcc 6.0.11, EMSDK_PYTHON trap handled
-gh release download v0.10.0 -R Preponderous-Software/strata \
-   -p 'strata-0.10.0-wasm32-emscripten.tar.gz' -D .strata
+. ../agentviz/tools/emsdk-env.sh              # needs $EMSDK; emcc 6.0.11
+mkdir -p .strata && curl -fL -o .strata/strata-0.10.0-wasm32-emscripten.tar.gz \
+  https://github.com/Preponderous-Software/strata/releases/download/v0.10.0/strata-0.10.0-wasm32-emscripten.tar.gz
 tar -xzf .strata/strata-0.10.0-wasm32-emscripten.tar.gz -C .strata
 STRATA_TARBALL=.strata/strata-0.10.0-wasm32-emscripten.tar.gz \
 STRATA_SHA256=bb86b974c7e0309db91625ba5ee157273704c77d93f4338c8a63ee625e3d56de \
@@ -42,6 +42,7 @@ STRATA_SHA256=bb86b974c7e0309db91625ba5ee157273704c77d93f4338c8a63ee625e3d56de \
 - Mobile is first-class: touch orbit/pinch from the kit; tap = select, and a
   bottom sheet shows the selected agent's name, state, action and label.
 - `?fixture=1` shows the demo feed; `?fps=1` shows the kit's frame stats.
-- Playwright: /root/arcade-watch/node_modules is gone; use `NODE_PATH=/root/casework/node_modules` (any node_modules with Playwright).
+- Browser tests: `npm i playwright && npx playwright install chromium`, then
+  run them with `NODE_PATH=$PWD/node_modules`.
 - Headless Chromium (SwiftShader) is far slower than a real GPU: never judge
   performance from it.
