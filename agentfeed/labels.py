@@ -54,8 +54,8 @@ def tool_label(name, tool_input):
 
 def place_of(cwd, home=None):
     """(id, label) of the place a working directory belongs to: its basename,
-    or "~" for the home directory. Gardener cache clones are named
-    Owner__Repo; the label keeps only the repo."""
+    or "~" for the home directory. A directory named Owner__Repo (a common
+    naming for cache clones) is labelled with the repo part only."""
     home = home or os.path.expanduser("~")
     if not cwd or os.path.normpath(os.path.expanduser(cwd)) == os.path.normpath(home):
         return "~", "home"

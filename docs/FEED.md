@@ -25,7 +25,7 @@ subagents. Every visualization in the family reads only this.
       "stalled": false,           // busy but nothing written for > 300 s
       "place": "plugin-site", "placeLabel": "plugin-site",
       "branch": "main",           // last gitBranch in the transcript, or null
-      "kind": "interactive",
+      "kind": "interactive",      // as the registry reports it, e.g. "interactive" or "remote"
       "fixture": true,
       "activity": {"tool": "Bash", "action": "run", "label": "Check lane PRs", "ageSec": 4.0},
       "action": "run",            // what the agent is doing NOW (see below)
@@ -45,7 +45,7 @@ subagents. Every visualization in the family reads only this.
          "startedAt": 1763997000.0}  // epoch seconds of its first transcript line (0.3)
       ],
       "seed": 0.12,               // stable 0..1 per id: use it for colours, jitter, props
-      "startedAt": 1763999000000
+      "startedAt": 1763999000000  // epoch MILLISECONDS, as the session registry stores it
     }
   ]
 }
@@ -53,6 +53,12 @@ subagents. Every visualization in the family reads only this.
 
 Fields marked (0.3) were added in agentfeed 0.3. They are additive, so the
 schema stays at version 1; older pages ignore them.
+
+## Places
+
+`place` is the working directory's basename. The home directory becomes
+`"~"` with the label `"home"`. A directory named `Owner__Repo` (a common
+naming for cache clones) gets the label `Repo`.
 
 ## Actions
 
@@ -78,7 +84,7 @@ are shown faded or absent. `dim` is a shell or unknown status.
 ## Privacy
 
 What leaves the feed: session names, tool names, git branch names, a working
-directory's basename (`place`), file basenames, and short free-text labels: a
+directory's basename (`place`), file basenames, web hosts, and short free-text labels: a
 Bash command's own one-line description and a subagent's description. Those
 two are written by the model, so they can contain anything it chose to say
 about the work. Token-shaped strings in any label (API keys, GitHub, Slack and

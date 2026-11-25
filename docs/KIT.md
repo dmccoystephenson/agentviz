@@ -14,6 +14,7 @@ keeps only its metaphor: the layout, the motion and the drawing.
 | `kit/web/agentviz-wire.js` | `AgentvizWire`: packs one frame into a `Float32Array` (layout below) and hands it to the engine. |
 | `kit/scene/agentviz.h` | Decodes that buffer in the scene; the vocabulary enums, `seed_of`, easing. Header-only C++17, no Strata dependency. |
 | `kit/scene/build-scene.sh` | Downloads the pinned Strata 0.10.0 wasm tarball, checks its SHA-256, activates emsdk from `$EMSDK`, runs the tarball's `kit/build-kit.sh` with the repo's `scene/kit.conf`. |
+| `kit/scene/emsdk-env.sh` | Activates emsdk 6.0.11 from `$EMSDK` (build-scene.sh sources it); picks a Python 3.10+ for emsdk and keeps `EMSDK_PYTHON` set across `emsdk_env.sh`. |
 | `kit/tests/harness.cjs`, `screens.cjs`, `make_gif.py` | Browser tests: Playwright from `NODE_PATH` or `./node_modules`, the fixture server started and killed by PID, console-error capture, CSS animations paused, the not-a-flat-frame check, README stills and a GIF (Pillow). |
 | `kit/check_vendor.py` | Confirms the viz's vendored copies (and the page files served from `web/`) match their PINs. |
 

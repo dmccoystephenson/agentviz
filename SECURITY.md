@@ -5,8 +5,8 @@
 `agentfeed` reads Claude Code's local files on the machine it runs on:
 
 - `~/.claude/sessions/*.json`: which sessions are running, their status and name.
-- The last 96 KB of each session's transcript in `~/.claude/projects/`, and of
-  its subagents' transcripts.
+- The last 96 KB of each session's transcript in `~/.claude/projects/`, and
+  the last 32 KB of each of its subagents' transcripts.
 
 From those it serves `/api/agents` (docs/FEED.md). Only these leave the
 process: session names, tool names, git branch names, a working directory's

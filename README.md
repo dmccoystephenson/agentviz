@@ -19,18 +19,18 @@ contents or commands; see [SECURITY.md](SECURITY.md).
 
 ## The visualizations
 
-| # | Repo | Port | Metaphor | Sessions are… | Subagents are… |
-|---|---|---|---|---|---|
-| 1 | [agentviz-office](https://github.com/dmccoystephenson/agentviz-office) | 8841 | Open-plan office | lead desks in team pods (one pod per repo) | satellite desks in the pod; tool = desk activity; waiting = note on the owner's door |
-| 2 | [agentviz-kitchen](https://github.com/dmccoystephenson/agentviz-kitchen) | 8842 | Restaurant kitchen | head chefs at the pass | line cooks at stations; tickets on the rail |
-| 3 | [agentviz-railway](https://github.com/dmccoystephenson/agentviz-railway) | 8843 | Railway yard | trunk lines (branches) | locomotives on sidings; signals for state |
-| 4 | [agentviz-atc](https://github.com/dmccoystephenson/agentviz-atc) | 8844 | Air traffic control | airports / gates | flights out and back; holding stack = waiting on you |
-| 5 | [agentviz-mine](https://github.com/dmccoystephenson/agentviz-mine) | 8845 | Mine cross-section | shafts | branching tunnels; depth = time/tool calls |
-| 6 | [agentviz-hive](https://github.com/dmccoystephenson/agentviz-hive) | 8846 | Beehive | queens' cells by repo | foragers; trails where repos overlap |
-| 7 | [agentviz-constellation](https://github.com/dmccoystephenson/agentviz-constellation) | 8847 | Star system | stars | orbiting planets; speed = activity |
-| 8 | [agentviz-shipyard](https://github.com/dmccoystephenson/agentviz-shipyard) | 8848 | Shipyard | hulls in dry dock (repos) | welders on scaffolding |
-| 9 | [agentviz-orchestra](https://github.com/dmccoystephenson/agentviz-orchestra) | 8849 | Orchestra | conductors | instrument sections; tool calls play notes (opt-in audio) |
-| 10 | [agentviz-wartable](https://github.com/dmccoystephenson/agentviz-wartable) | 8850 | Campaign war table | banners on regions | scouts riding out |
+| # | Repo | Port | Metaphor | Repos are… | Sessions are… | Subagents are… | Waiting on you |
+|---|---|---|---|---|---|---|---|
+| 1 | [agentviz-office](https://github.com/dmccoystephenson/agentviz-office) | 8841 | Open-plan office | team pods | lead desks with a lamp | satellite desks in the pod, lane label over the monitor | walks to your glass office and holds up a sticky note |
+| 2 | [agentviz-kitchen](https://github.com/dmccoystephenson/agentviz-kitchen) | 8842 | Restaurant kitchen | kitchen lines | head chefs at the pass | line cooks at stations, tickets on the rail | red heat lamp, plate up, service bell |
+| 3 | [agentviz-railway](https://github.com/dmccoystephenson/agentviz-railway) | 8843 | Railway yard | trunk lines with a station | locomotives (branch on a brass plate) | small locomotives on sidings | flashing red signal and bell |
+| 4 | [agentviz-atc](https://github.com/dmccoystephenson/agentviz-atc) | 8844 | Air traffic control | airports on a ring | aircraft at gates | small aircraft flying loops out and back | joins the holding stack round your tower |
+| 5 | [agentviz-mine](https://github.com/dmccoystephenson/agentviz-mine) | 8845 | Mine cross-section | pitheads (depth = tool calls) | shafts with a miner at the face | side tunnels that lengthen with work | red cage and flare at the collar |
+| 6 | [agentviz-hive](https://github.com/dmccoystephenson/agentviz-hive) | 8846 | Beehive | tinted regions of comb | crowned bees | worker bees bridged to their lead | alarm dance in a glowing cell |
+| 7 | [agentviz-constellation](https://github.com/dmccoystephenson/agentviz-constellation) | 8847 | Star system | nebulae | stars | orbiting planets (fast when active) | pulsing star with beacon rings |
+| 8 | [agentviz-shipyard](https://github.com/dmccoystephenson/agentviz-shipyard) | 8848 | Shipyard | dry docks (hull grows with tool calls) | foremen with a crane | welders on the scaffolding | foghorn lamp and flag |
+| 9 | [agentviz-orchestra](https://github.com/dmccoystephenson/agentviz-orchestra) | 8849 | Orchestra | ensembles on rugs | conductors on podiums | musicians; each tool call plays a note (opt-in sound) | spotlight on the solo chair |
+| 10 | [agentviz-wartable](https://github.com/dmccoystephenson/agentviz-wartable) | 8850 | Campaign war table | map regions with a keep | banners | mounted scouts riding out | beacon fire on a hill |
 
 ## Gallery
 
@@ -50,8 +50,6 @@ Hero shots from each repo's demo feed (`?fixture=1`), all on the shared kit: the
 
 All ten are built on the Strata 0.10.0 web kit and read agentfeed schema v1.
 
-agentfeed began as the data half of an earlier session-village view, without
-its layout.
 
 ## agentfeed
 
