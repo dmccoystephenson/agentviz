@@ -8,6 +8,7 @@ PACKAGE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 PURE = ["core.py", "model.py", "vocabulary.py", "labels.py", "times.py",
         "ports/__init__.py", "ports/session_source.py", "ports/activity_source.py"]
 IO_MODULES = {"glob", "socket", "subprocess", "threading", "http", "urllib", "shutil", "json"}
+PURE_EXCEPTIONS = {"urllib.parse"}  # string parsing only, no I/O
 
 
 def imports_of(path):
@@ -25,7 +26,7 @@ class Layering(unittest.TestCase):
     def test_pure_modules_do_no_io(self):
         for name in PURE:
             for module, level in imports_of(os.path.join(PACKAGE, name)):
-                if level == 0:
+                if level == 0 and module not in PURE_EXCEPTIONS:
                     self.assertNotIn(module.split(".")[0], IO_MODULES, "%s imports %s" % (name, module))
 
     def test_pure_modules_never_import_adapters_or_service(self):

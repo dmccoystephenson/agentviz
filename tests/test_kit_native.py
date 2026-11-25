@@ -53,6 +53,7 @@ class NativeHeaderTest(unittest.TestCase):
         self.assertEqual(frame["fixture"], 1)
         self.assertEqual((frame["scene0"], frame["scene15"]), (1.0, 16.0))
         self.assertTrue(self.result["refusesTruncated"])
+        self.assertTrue(self.result["refusesHugeCounts"])
 
     def test_zone_and_link(self):
         zone, link = self.result["frame"]["zones"][0], self.result["frame"]["links"][0]

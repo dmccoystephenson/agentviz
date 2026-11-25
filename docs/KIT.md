@@ -143,3 +143,31 @@ two halves cannot drift apart.
 
 Generic pieces start here and may move upstream (to Strata's web kit or
 darkroom) once they have settled.
+
+## Licence notices
+
+`kit/NOTICES-emscripten.md` holds the licence texts for what emsdk compiles
+into every engine (the Emscripten runtime, musl libc, libc++ and libc++abi). It
+is vendored with the kit as `vendor/agentviz-kit/NOTICES-emscripten.md`; each
+viz's THIRD_PARTY_NOTICES.md points to it, next to Strata's own notices.
+
+## Guard tests
+
+`kit/tests/guards.py` holds the tests every viz runs: no `innerHTML` in the
+page's own scripts and HTML, no empty `catch` blocks, no machine-local paths in
+tracked text (CLAUDE.md's "while private" line is exempt). Load it by path in a
+unit test and subclass `GuardTests` with `REPO` set; see the file's docstring.
+
+## What check_vendor.py proves
+
+It proves each vendored copy matches the digest in its own PIN, so an edit to
+a vendored file (or to a `web/agentviz-*` copy) without re-vendoring fails.
+It does not prove the PIN's commit is the one named on its first line: re-run
+`tools/vendor-kit.sh` from that agentviz commit to be sure.
+
+## Portability
+
+`build-scene.sh` checks the Strata tarball with `sha256sum`, or `shasum -a 256`
+where that is missing (macOS). `emsdk-env.sh` stops with a message when no
+Python 3.10+ is found. The test harness runs `python3` (or `python` on
+Windows); set `AGENTVIZ_PYTHON` to override.

@@ -59,6 +59,21 @@ bool refusesTruncated(const std::vector<float>& data) {
     return !f.assign(data.data(), data.size() - 1) && !f.error.empty() && f.ok && f.agents.size() == agents;
 }
 
+// A header claiming far more records than the buffer holds must be refused
+// before any allocation (on wasm32 the size arithmetic would otherwise wrap).
+bool refusesHugeCounts() {
+    std::vector<float> header(agentviz::kHeader, 0.0f);
+    header[0] = agentviz::kMagic;
+    header[1] = static_cast<float>(agentviz::kFormatVersion);
+    header[3] = 1073741824.0f;  // 2^30 agents
+    agentviz::Frame f;
+    try {
+        return !f.assign(header.data(), header.size()) && f.agents.empty();
+    } catch (...) {
+        return false;
+    }
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -71,7 +86,8 @@ int main(int argc, char** argv) {
     frame.assign(data.data(), data.size());
     std::printf("{");
     printFrame(frame);
-    std::printf(",\"refusesTruncated\":%s,\"seeds\":[", refusesTruncated(data) ? "true" : "false");
+    std::printf(",\"refusesTruncated\":%s,\"refusesHugeCounts\":%s,\"seeds\":[",
+                refusesTruncated(data) ? "true" : "false", refusesHugeCounts() ? "true" : "false");
     for (int i = 2; i < argc; ++i) {
         std::printf("[%u,%.4f]%s", agentviz::fnv1a(argv[i]), agentviz::seed_of(argv[i]), i + 1 < argc ? "," : "");
     }
