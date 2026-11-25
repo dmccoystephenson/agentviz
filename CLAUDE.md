@@ -3,6 +3,12 @@
 Index of the agentviz family + the shared `agentfeed` package (stdlib-only
 Python 3.8+). Tests: `python3 -m unittest discover -s tests`.
 
+- Layout (ports and adapters): `agentfeed/core.py` is pure (records in, feed
+  document out); `ports/` holds the two questions it asks (SessionSource,
+  ActivitySource), one file each; `adapters/` answers them (Claude's session
+  registry, transcripts, the demo feed) and serves HTTP, one file each;
+  `service.py` wires them. `feed.py` and `serve.py` are compatibility shims.
+  `tests/test_architecture.py` enforces the layering.
 - Feed schema: docs/FEED.md. Changing a field is a schema change: bump
   `SCHEMA_VERSION` and say so in every visualization repo.
 - Privacy: only tool names and short labels leave `feed.py` (basename, a Bash

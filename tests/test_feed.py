@@ -93,13 +93,8 @@ class LiveFromDisk(unittest.TestCase):
                 f.write(json.dumps({**line, "message": {"content": [{"type": "tool_use", "name": "Grep", "input": {}}]}}) + "\n")
             with open(sub[:-6] + ".meta.json", "w") as f:
                 json.dump({"description": "lane a"}, f)
-            # The test process is python, not claude: patch the process check.
-            orig = feed.is_claude_process
-            feed.is_claude_process = lambda pid: True
-            try:
-                doc = feed.build_feed(sessions, projects, now=now)
-            finally:
-                feed.is_claude_process = orig
+            # The test process is python, not claude: inject the liveness check.
+            doc = feed.build_feed(sessions, projects, now=now, is_alive=lambda pid: True)
             self.assertEqual(len(doc["sessions"]), 1)
             s = doc["sessions"][0]
             self.assertEqual((s["state"], s["action"], s["branch"], s["place"]), ("busy", "edit", "feat/x", "repo-x"))
