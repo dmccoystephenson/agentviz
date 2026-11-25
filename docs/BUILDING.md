@@ -42,5 +42,6 @@ STRATA_SHA256=bb86b974c7e0309db91625ba5ee157273704c77d93f4338c8a63ee625e3d56de \
 - Mobile is first-class: touch orbit/pinch from the kit; tap = select, and a
   bottom sheet shows the selected agent's name, state, action and label.
 - `?fixture=1` shows the demo feed; `?fps=1` shows the kit's frame stats.
+- Playwright: /root/arcade-watch/node_modules is gone; use `NODE_PATH=/root/casework/node_modules` (any node_modules with Playwright).
 - Headless Chromium (SwiftShader) is far slower than a real GPU: never judge
   performance from it.

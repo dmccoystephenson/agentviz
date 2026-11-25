@@ -374,6 +374,7 @@ def build_feed(sessions_dir=None, projects_dir=None, now=None, fixture=None, inc
     now = time.time() if now is None else now
     sessions = []
     if fixture is not None:
+        fixture = rebase_fixture(fixture, now)
         for raw in fixture:
             alive = raw.get("status") != "offline"
             sessions.append(session_entry(raw, projects_dir, now, alive, fixture=True))
@@ -403,6 +404,23 @@ def build_feed(sessions_dir=None, projects_dir=None, now=None, fixture=None, inc
     return {"version": SCHEMA_VERSION, "serverTime": now, "fixture": fixture is not None,
             "counts": counts, "places": sorted(places.values(), key=lambda p: (-p["sessions"], p["id"])),
             "sessions": sessions}
+
+
+def rebase_fixture(fixture, now):
+    """Fixture times are relative: a session's `startedAgoSec` / `updatedAgoSec`
+    become epoch-ms `startedAt` / `updatedAt` measured back from `now`, so the
+    demo feed never drifts (a busy session would otherwise turn "stalled" a few
+    minutes after the fixture was written). Absolute `startedAt` / `updatedAt`
+    are still accepted and left alone."""
+    out = []
+    for raw in fixture:
+        raw = dict(raw)
+        for rel, key in (("startedAgoSec", "startedAt"), ("updatedAgoSec", "updatedAt")):
+            if isinstance(raw.get(rel), (int, float)) and not isinstance(raw.get(rel), bool):
+                raw[key] = (now - raw[rel]) * 1000.0
+                raw.setdefault("statusUpdatedAt", raw.get("updatedAt"))
+        out.append(raw)
+    return out
 
 
 def load_fixture(path):
