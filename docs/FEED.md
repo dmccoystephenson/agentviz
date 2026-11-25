@@ -70,6 +70,10 @@ full paths; `cwd` itself is not in the document. The server binds to
 127.0.0.1. Fixtures are synthetic: never commit real transcript data or
 screenshots of a live feed.
 
+## Fixture
+
+`agentfeed/fixture.json` uses relative times (`startedAgoSec`, `updatedAgoSec`), rebased to now on every build, so the demo feed never drifts. It covers every state and action, plus one stalled session.
+
 ## Polling
 
 Poll every 2 s. Animate between snapshots; never rebuild the scene from

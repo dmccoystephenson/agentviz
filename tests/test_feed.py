@@ -30,6 +30,18 @@ class FixtureFeed(unittest.TestCase):
         states = {s["state"] for s in self.doc["sessions"]}
         self.assertTrue({"offline", "idle", "busy", "waiting"} <= states)
 
+    def test_every_action_present(self):
+        actions = {s["action"] for s in self.doc["sessions"]}
+        self.assertTrue({"edit", "read", "web", "delegate", "think", "other"} <= actions)
+
+    def test_no_drift(self):
+        """The same fixture gives the same states an hour later."""
+        later = feed.build_feed(fixture=feed.load_fixture(FIXTURE_FILE), now=time.time() + 3600)
+        key = lambda d: [(s["id"], s["state"], s["action"], s["stalled"]) for s in d["sessions"]]
+        self.assertEqual(key(self.doc), key(later))
+        stalled = [s["name"] for s in self.doc["sessions"] if s["stalled"]]
+        self.assertEqual(stalled, ["Patch"])
+
     def test_counts(self):
         c = self.doc["counts"]
         self.assertEqual(c["followers"], sum(len(s["followers"]) for s in self.doc["sessions"]))
