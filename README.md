@@ -29,6 +29,24 @@ then open `http://127.0.0.1:<port>/` (127.0.0.1 only; the feed describes real wo
 | 9 | [agentviz-orchestra](https://github.com/dmccoystephenson/agentviz-orchestra) | 8849 | Orchestra | conductors | instrument sections; tool calls play notes (opt-in audio) |
 | 10 | [agentviz-wartable](https://github.com/dmccoystephenson/agentviz-wartable) | 8850 | Campaign war table | banners on regions | scouts riding out |
 
+## Gallery
+
+Hero shots from each repo's demo feed (`?fixture=1`). Each repo's README has the full set: close-ups of every state, the selected-agent panel, a phone shot and a short GIF.
+
+| [**Office**](https://github.com/dmccoystephenson/agentviz-office) | [**Kitchen**](https://github.com/dmccoystephenson/agentviz-kitchen) |
+|---|---|
+| [![Office](docs/gallery/office.jpg)](https://github.com/dmccoystephenson/agentviz-office)<br>Team pods round a corridor to the owner's glass office; waiting = sticky note on the owner's door | [![Kitchen](docs/gallery/kitchen.jpg)](https://github.com/dmccoystephenson/agentviz-kitchen)<br>Head chefs at the pass, line cooks at stations; waiting = red heat lamp + service bell |
+| [**Railway**](https://github.com/dmccoystephenson/agentviz-railway) | [**Air traffic control**](https://github.com/dmccoystephenson/agentviz-atc) |
+| [![Railway](docs/gallery/railway.jpg)](https://github.com/dmccoystephenson/agentviz-railway)<br>Locomotives on trunk lines, subagents on sidings; waiting = flashing red signal + bell | [![Air traffic control](docs/gallery/atc.jpg)](https://github.com/dmccoystephenson/agentviz-atc)<br>Aircraft at gates, subagents fly loops; waiting = holding stack round the owner's tower |
+| [**Mine**](https://github.com/dmccoystephenson/agentviz-mine) | [**Hive**](https://github.com/dmccoystephenson/agentviz-hive) |
+| [![Mine](docs/gallery/mine.jpg)](https://github.com/dmccoystephenson/agentviz-mine)<br>Shafts in layered earth, subagent tunnels grow with work; waiting = red cage + flare at the collar | [![Hive](docs/gallery/hive.jpg)](https://github.com/dmccoystephenson/agentviz-hive)<br>Bees on a hex comb, workers fly loops; waiting = alarm dance; shared repos joined by scent trails |
+| [**Constellation**](https://github.com/dmccoystephenson/agentviz-constellation) | [**Shipyard**](https://github.com/dmccoystephenson/agentviz-shipyard) |
+| [![Constellation](docs/gallery/constellation.jpg)](https://github.com/dmccoystephenson/agentviz-constellation)<br>Stars with orbiting planets; waiting = pulsing beacon rings | [![Shipyard](docs/gallery/shipyard.jpg)](https://github.com/dmccoystephenson/agentviz-shipyard)<br>Foremen and welders round growing hulls; waiting = foghorn lamp + flag |
+| [**Orchestra**](https://github.com/dmccoystephenson/agentviz-orchestra) | [**War table**](https://github.com/dmccoystephenson/agentviz-wartable) |
+| [![Orchestra](docs/gallery/orchestra.jpg)](https://github.com/dmccoystephenson/agentviz-orchestra)<br>Conductors and musicians, action = instrument family, opt-in sound; waiting = spotlight on the solo chair | [![War table](docs/gallery/wartable.jpg)](https://github.com/dmccoystephenson/agentviz-wartable)<br>Banners and scouts on a candlelit map; waiting = beacon fire on a hill |
+
+All ten reached a playable MVP on 2026-11-24/25 (Strata 0.10.0 web kit, agentfeed schema v1), each merged with a localci PASS.
+
 The `/3d` session village in claude-code-dashboard is the ancestor of all of
 these; agentfeed is its data half without the layout.
 
