@@ -1,0 +1,28 @@
+{
+  "_comment": "Input for wire_fixture.f32 (pack_fixture.js). Synthetic. Ids include non-ASCII and astral code points to pin the hashing.",
+  "doc": {
+    "version": 1, "fixture": true,
+    "sessions": [
+      {"id": "demo-lead", "name": "Otto", "state": "busy", "action": "run", "seed": 0.25, "stalled": false,
+       "toolCount": 12,
+       "followers": [
+         {"id": "f-one", "label": "polish/a11y", "state": "active", "action": "edit", "seed": 0.5, "toolCount": 3,
+          "stalled": false, "finished": false},
+         {"id": "f-two", "label": "tests", "state": "resting", "action": "run", "seed": 0.75, "toolCount": 9,
+          "stalled": true, "finished": false}
+       ]},
+      {"id": "démo-ü-✓-🦊", "name": "Wren", "state": "waiting", "action": "none",
+       "waitingReason": "permission", "stalled": false, "toolCount": 4, "followers": []}
+    ]
+  },
+  "scene": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+  "zones": [{"id": "site-one", "kind": 2, "seed": 0.125, "x0": -1, "z0": -2, "x1": 3, "z1": 4, "appear": 0.5, "extra": [0.25, 1]}],
+  "agents": [
+    {"session": 0, "x": 1, "y": 2, "z": 3, "facing": 1.5, "appear": 1, "highlight": 1, "pulse": 0.5, "extra": [7, 8]},
+    {"session": 0, "follower": 0, "x": 4, "y": 0, "z": -4, "appear": 0.25},
+    {"session": 0, "follower": 1, "x": 5, "y": 0, "z": -5},
+    {"session": 1, "x": -6, "y": 1, "z": 6, "highlight": 2, "extra": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 99]}
+  ],
+  "links": [{"kind": 1, "from": "demo-lead", "to": "demo-lead/f-one", "x0": 0, "y0": 1, "z0": 2, "x1": 3, "y1": 4, "z1": 5,
+             "phase": 0.5, "seed": 0.25, "alpha": 0.75}]
+}
