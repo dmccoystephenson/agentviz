@@ -18,6 +18,9 @@ class Follower:
     label: str
     quiet_sec: float               # seconds since its transcript was written
     tools: List[ToolCall] = field(default_factory=list)
+    finished: Optional[bool] = None  # from its .meta.json; None when unknown
+    started_at: Optional[float] = None  # epoch seconds of its first transcript line
+    branch: Optional[str] = None
 
 
 @dataclass
@@ -45,3 +48,5 @@ class Activity:
     recent: List[dict] = field(default_factory=list)
     followers: List[dict] = field(default_factory=list)
     branch: Optional[str] = None
+    tool_count: int = 0                 # tool calls seen in the transcript tail
+    last_tool_at: Optional[float] = None  # epoch seconds of the newest one

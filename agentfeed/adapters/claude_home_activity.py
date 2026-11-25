@@ -105,6 +105,7 @@ class ClaudeHomeActivity(ActivitySource):
         self.projects_dir = projects_dir or os.path.join(os.path.expanduser("~"), ".claude", "projects")
         self.cache = cache or TranscriptTailCache()
         self._paths = {}
+        self._starts = {}
 
     def activity(self, record: SessionRecord, now) -> Optional[Activity]:
         path = self.transcript_path(record.raw.get("sessionId"), record.raw.get("cwd"))
@@ -144,18 +145,39 @@ class ClaudeHomeActivity(ActivitySource):
             if quiet > RESTING_WINDOW_SEC:
                 continue
             agent_id = os.path.basename(path)[len("agent-"): -len(".jsonl")]
-            tools = self.cache.read(path, SUBAGENT_TAIL_BYTES).tools
-            followers.append(Follower(agent_id=agent_id, label=_subagent_label(path), quiet_sec=quiet, tools=tools))
+            tail = self.cache.read(path, SUBAGENT_TAIL_BYTES)
+            label, finished = _subagent_meta(path)
+            followers.append(Follower(agent_id=agent_id, label=label, quiet_sec=quiet, tools=tail.tools,
+                                      finished=finished, started_at=self._started_at(path), branch=tail.branch))
         return followers
 
+    def _started_at(self, path) -> Optional[float]:
+        """Epoch seconds of a transcript's first line (cached: it never changes)."""
+        if path not in self._starts:
+            self._starts[path] = _first_timestamp(path)
+        return self._starts[path]
 
-def _subagent_label(transcript_path) -> str:
-    """The description the parent gave the subagent, from its .meta.json."""
+
+def _first_timestamp(path) -> Optional[float]:
+    try:
+        with open(path, "rb") as f:
+            first = f.readline(64 * 1024)
+        return iso_epoch(json.loads(first.decode("utf-8", "ignore")).get("timestamp"))
+    except (OSError, ValueError, AttributeError):
+        return None
+
+
+def _subagent_meta(transcript_path):
+    """(label, finished) from a subagent's .meta.json: the description its
+    parent gave it, and whether it has finished (None when unknown)."""
     try:
         with open(transcript_path[: -len(".jsonl")] + ".meta.json", "r") as f:
             meta = json.load(f)
     except (OSError, ValueError):
-        return "subagent"
-    description = meta.get("description") if isinstance(meta, dict) else None
+        return "subagent", None
+    if not isinstance(meta, dict):
+        return "subagent", None
+    description = meta.get("description")
     label = short_label(description, 40) if isinstance(description, str) else ""
-    return label or "subagent"
+    finished = meta.get("finished") if isinstance(meta.get("finished"), bool) else None
+    return label or "subagent", finished

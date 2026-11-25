@@ -14,8 +14,10 @@ from .vocabulary import (FOLLOWER_WINDOW_SEC, MAX_FOLLOWERS, RECENT_TOOLS, SCHEM
 def summarize(history: History, now, include_followers=True) -> Activity:
     """Turn a transcript's history into feed-shaped activity."""
     followers = summarize_followers(history.followers, now) if include_followers else []
+    last = history.tools[-1] if history.tools else None
     return Activity(current=_current_call(history.tools, now), recent=_recent_calls(history.tools, now),
-                    followers=followers, branch=history.branch)
+                    followers=followers, branch=history.branch, tool_count=len(history.tools),
+                    last_tool_at=last.timestamp if last else None)
 
 
 def summarize_followers(followers: List[Follower], now) -> List[dict]:
@@ -53,7 +55,17 @@ def _follower_entry(follower: Follower, now) -> dict:
         "quietSec": round(follower.quiet_sec, 1),
         "toolCount": len(follower.tools),
         "seed": seed_of(follower.agent_id),
+        "finished": follower.finished,
+        "stalled": follower_stalled(follower.finished, follower.quiet_sec),
+        "branch": follower.branch,
+        "startedAt": follower.started_at,
     }
+
+
+def follower_stalled(finished, quiet_sec) -> bool:
+    """A subagent that hasn't said it finished but has written nothing for
+    STALL_SEC. Unknown `finished` (None) never counts as stalled."""
+    return finished is False and quiet_sec > STALL_SEC
 
 
 # ------------------------------------------------------------ session entries
@@ -69,12 +81,13 @@ def session_entry(record: SessionRecord, activity: Optional[Activity], now) -> d
     tool_age = (current or {}).get("ageSec")
     idle = _idle_seconds(raw, tool_age, now)
     active_followers = sum(1 for f in activity.followers if f.get("state") == "active")
+    status_age = age_of_ms(raw.get("statusUpdatedAt") or raw.get("updatedAt"), now)
     return {
         "id": session_id,
         "name": short_label(raw.get("name") or "%s-%s" % (place_label, session_id[:4]), 60),
         "state": state,
         "status": raw.get("status"),
-        "statusAgeSec": age_of_ms(raw.get("statusUpdatedAt") or raw.get("updatedAt"), now),
+        "statusAgeSec": status_age,
         "uptimeSec": age_of_ms(raw.get("startedAt"), now),
         "idleSec": idle,
         "stalled": bool(state == "busy" and idle is not None and idle > STALL_SEC),
@@ -89,7 +102,20 @@ def session_entry(record: SessionRecord, activity: Optional[Activity], now) -> d
         "followers": activity.followers,
         "seed": seed_of(session_id),
         "startedAt": raw.get("startedAt") or 0,
+        "toolCount": activity.tool_count,
+        "lastToolAt": activity.last_tool_at,
+        "waitingSec": status_age if state == "waiting" else None,
+        "waitingReason": waiting_reason(state, current),
     }
+
+
+def waiting_reason(state, current) -> Optional[str]:
+    """Why a waiting session needs the owner: "question" when its last tool
+    call asked one (AskUserQuestion), otherwise "permission". None when the
+    session isn't waiting."""
+    if state != "waiting":
+        return None
+    return "question" if (current or {}).get("tool") == "AskUserQuestion" else "permission"
 
 
 def _idle_seconds(raw, tool_age, now):
@@ -114,11 +140,13 @@ def _places(sessions: List[dict]) -> List[dict]:
     places = {}
     for s in sessions:
         place = places.setdefault(s["place"], {"id": s["place"], "label": s["placeLabel"], "seed": seed_of(s["place"]),
-                                               "sessions": 0, "busy": 0, "waiting": 0, "followers": 0})
+                                               "sessions": 0, "busy": 0, "waiting": 0, "followers": 0,
+                                               "toolCount": 0})
         place["sessions"] += 1
         place["busy"] += s["state"] == "busy"
         place["waiting"] += s["state"] == "waiting"
         place["followers"] += len(s["followers"])
+        place["toolCount"] += s["toolCount"] + sum(f.get("toolCount") or 0 for f in s["followers"])
     return sorted(places.values(), key=lambda p: (-p["sessions"], p["id"]))
 
 

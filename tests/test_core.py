@@ -84,3 +84,39 @@ class Document(unittest.TestCase):
         stale.raw["updatedAt"] = (NOW - 900) * 1000
         doc = build_feed_from(FakeSessions([stale]), FakeActivity({}), NOW)
         self.assertTrue(doc["sessions"][0]["stalled"])
+
+
+class NewFields(unittest.TestCase):
+    """Fields added in agentfeed 0.3 (schema v1, additive)."""
+
+    def test_waiting_reason_and_seconds(self):
+        asking = record("q", status="waiting", statusUpdatedAt=(NOW - 40) * 1000)
+        blocked = record("p", status="waiting", statusUpdatedAt=(NOW - 90) * 1000)
+        activity = FakeActivity({"q": Activity(current={"tool": "AskUserQuestion", "action": "other", "ageSec": 40.0}),
+                                 "p": Activity(current={"tool": "Bash", "action": "run", "ageSec": 90.0})})
+        by_id = {s["id"]: s for s in build_feed_from(FakeSessions([asking, blocked, record("b")]), activity,
+                                                     NOW)["sessions"]}
+        self.assertEqual((by_id["q"]["waitingReason"], by_id["q"]["waitingSec"]), ("question", 40.0))
+        self.assertEqual((by_id["p"]["waitingReason"], by_id["p"]["waitingSec"]), ("permission", 90.0))
+        self.assertEqual((by_id["b"]["waitingReason"], by_id["b"]["waitingSec"]), (None, None))
+
+    def test_tool_counts_and_last_call(self):
+        history = History(tools=[ToolCall("Read", None, NOW - 9), ToolCall("Edit", None, NOW - 3)],
+                          followers=[Follower("f", "lane", 2.0, [ToolCall("Grep", None, NOW - 2)] * 5)])
+        doc = build_feed_from(FakeSessions([record("a")]), FakeActivity({"a": core.summarize(history, NOW)}), NOW)
+        session = doc["sessions"][0]
+        self.assertEqual((session["toolCount"], session["lastToolAt"]), (2, NOW - 3))
+        self.assertEqual(doc["places"][0]["toolCount"], 7)
+
+    def test_follower_stalled_needs_unfinished_and_quiet(self):
+        self.assertTrue(core.follower_stalled(False, 400))
+        self.assertFalse(core.follower_stalled(False, 100))
+        self.assertFalse(core.follower_stalled(True, 800))
+        self.assertFalse(core.follower_stalled(None, 800))
+
+    def test_follower_branch_finished_started(self):
+        follower = Follower("f", "lane", 400.0, [ToolCall("Bash", None, NOW - 400)], finished=False,
+                            started_at=NOW - 1000, branch="fix/x")
+        entry = core.summarize_followers([follower], NOW)[0]
+        self.assertEqual((entry["finished"], entry["stalled"], entry["branch"], entry["startedAt"]),
+                         (False, True, "fix/x", NOW - 1000))

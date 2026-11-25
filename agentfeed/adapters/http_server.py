@@ -5,7 +5,9 @@ its static files and the feed.
   /api/agents?fixture=1  the demo feed regardless of mode
   /<file>                a file inside the web directory, never above it
 
-Binds to 127.0.0.1 only: the feed describes real work on this machine."""
+Binds to 127.0.0.1 only, and answers only requests addressed to 127.0.0.1 or
+localhost, so a web page can't reach the feed through DNS rebinding: the feed
+describes real work on this machine."""
 import json
 import mimetypes
 import os
@@ -19,6 +21,19 @@ mimetypes.add_type("application/wasm", ".wasm")
 mimetypes.add_type("text/javascript", ".js")
 
 FEED_PATH = "/api/agents"
+LOCAL_HOSTS = ("127.0.0.1", "localhost", "[::1]")
+
+
+def is_local_host(host_header) -> bool:
+    """True when a Host header names this machine (any port)."""
+    if not host_header:
+        return False
+    host = host_header.strip().lower()
+    if host.startswith("["):
+        host = host.split("]", 1)[0] + "]"
+    else:
+        host = host.split(":", 1)[0]
+    return host in LOCAL_HOSTS
 
 
 def _build_feed(fixture_sessions):
@@ -45,6 +60,8 @@ def make_handler(web_dir, fixture_mode, fixture_path=FIXTURE_FILE):
             pass  # quiet: the server prints its URL once and nothing per request
 
         def do_GET(self):
+            if not is_local_host(self.headers.get("Host")):
+                return self._send(403, "text/plain", b"forbidden: open this page at 127.0.0.1 or localhost")
             url = urlparse(self.path)
             if url.path == FEED_PATH:
                 return self._send_feed(url.query)

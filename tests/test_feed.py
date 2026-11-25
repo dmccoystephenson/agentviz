@@ -27,8 +27,18 @@ class FixtureFeed(unittest.TestCase):
                 self.assertIn(f["action"], feed.ACTIONS)
 
     def test_every_state_present(self):
-        states = {s["state"] for s in self.doc["sessions"]}
-        self.assertTrue({"offline", "idle", "busy", "waiting"} <= states)
+        self.assertEqual({s["state"] for s in self.doc["sessions"]}, set(feed.STATES))
+
+    def test_demo_covers_new_fields(self):
+        sessions = self.doc["sessions"]
+        self.assertEqual({s["waitingReason"] for s in sessions} - {None}, {"question", "permission"})
+        followers = [f for s in sessions for f in s["followers"]]
+        self.assertTrue(any(f["stalled"] for f in followers))
+        self.assertTrue(any(f["toolLabel"] for f in followers))
+        self.assertTrue(any(f["branch"] != s["branch"] for s in sessions for f in s["followers"]))
+        offline_only = [p for p in self.doc["places"]
+                        if all(s["state"] == "offline" for s in sessions if s["place"] == p["id"])]
+        self.assertTrue(offline_only)
 
     def test_every_action_present(self):
         actions = {s["action"] for s in self.doc["sessions"]}
@@ -92,7 +102,7 @@ class LiveFromDisk(unittest.TestCase):
             with open(sub, "w") as f:
                 f.write(json.dumps({**line, "message": {"content": [{"type": "tool_use", "name": "Grep", "input": {}}]}}) + "\n")
             with open(sub[:-6] + ".meta.json", "w") as f:
-                json.dump({"description": "lane a"}, f)
+                json.dump({"description": "lane a", "finished": False}, f)
             # The test process is python, not claude: inject the liveness check.
             doc = feed.build_feed(sessions, projects, now=now, is_alive=lambda pid: True)
             self.assertEqual(len(doc["sessions"]), 1)
@@ -100,6 +110,10 @@ class LiveFromDisk(unittest.TestCase):
             self.assertEqual((s["state"], s["action"], s["branch"], s["place"]), ("busy", "edit", "feat/x", "repo-x"))
             self.assertEqual(s["activity"]["label"], "main.cpp")
             self.assertEqual([f["label"] for f in s["followers"]], ["lane a"])
+            follower = s["followers"][0]
+            self.assertEqual((follower["finished"], follower["stalled"], follower["branch"]), (False, False, "feat/x"))
+            self.assertAlmostEqual(follower["startedAt"], now - 5, delta=1)
+            self.assertEqual(s["toolCount"], 1)
             self.assertNotIn("SECRET", json.dumps(doc))
             self.assertNotIn("/work", json.dumps(doc))
 
