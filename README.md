@@ -34,7 +34,7 @@ contents or commands; see [SECURITY.md](SECURITY.md).
 
 ## Gallery
 
-Hero shots from each repo's demo feed (`?fixture=1`). Each repo's README has the full set: close-ups of every state, the selected-agent panel, a phone shot and a short GIF.
+Hero shots from each repo's demo feed (`?fixture=1`), all on the shared kit: the same top bar says who needs you and why (a permission prompt or a question). Each repo's README has the full set: close-ups of every state, the selected-agent panel, a phone shot and a short GIF.
 
 | [**Office**](https://github.com/dmccoystephenson/agentviz-office) | [**Kitchen**](https://github.com/dmccoystephenson/agentviz-kitchen) |
 |---|---|
