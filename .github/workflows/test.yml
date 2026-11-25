@@ -6,18 +6,27 @@ on:
 jobs:
   test:
     runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        python-version: ["3.8", "3.12"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
-      - run: python -m py_compile agentfeed/*.py
+          python-version: ${{ matrix.python-version }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: python -m py_compile agentfeed/*.py kit/check_vendor.py
+      # Includes the kit's native header test (g++) and the vendoring check.
       - run: python -m unittest discover -s tests -v
+      - name: Kit unit tests (feed diffing, wire packing)
+        run: node --test tests/kit/*.test.js
       - name: Serve smoke test
         run: |
           mkdir -p /tmp/web && echo ok > /tmp/web/index.html
-          python -m agentfeed serve --web /tmp/web --port 8840 --fixture &
+          python -m agentfeed serve --web /tmp/web --port 8900 --fixture &
           sleep 1
-          curl -sf http://127.0.0.1:8840/ | grep -q ok
-          curl -sf http://127.0.0.1:8840/api/agents | python -c "import json,sys; d=json.load(sys.stdin); assert d['version']==1 and d['fixture']"
-          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8840/../etc/passwd)" = 404
+          curl -sf http://127.0.0.1:8900/ | grep -q ok
+          curl -sf http://127.0.0.1:8900/api/agents | python -c "import json,sys; d=json.load(sys.stdin); assert d['version']==1 and d['fixture']"
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8900/../etc/passwd)" = 404

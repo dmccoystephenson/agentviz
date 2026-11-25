@@ -9,6 +9,14 @@ Python 3.8+). Tests: `python3 -m unittest discover -s tests`.
   registry, transcripts, the demo feed) and serves HTTP, one file each;
   `service.py` wires them. `feed.py` and `serve.py` are compatibility shims.
   `tests/test_architecture.py` enforces the layering.
+- `kit/` is the shared page/scene kit every viz vendors (docs/KIT.md): web/
+  (feed client, HUD, screen helpers, wire packer), scene/ (agentviz.h,
+  build-scene.sh), tests/ (Playwright harness, make_gif.py), check_vendor.py.
+  Changing the wire layout bumps its format version in agentviz-wire.js and
+  agentviz.h together and regenerates tests/kit/wire_fixture.f32
+  (`node tests/kit/pack_fixture.js --write`). Kit tests:
+  `node --test tests/kit/*.test.js`. Vendor with `tools/vendor-kit.sh <repo>`.
+  Feed strings reach the DOM as text only.
 - Feed schema: docs/FEED.md. Changing a field is a schema change: bump
   `SCHEMA_VERSION` and say so in every visualization repo.
 - Privacy: only names, tool names, branches, basenames and short labels leave

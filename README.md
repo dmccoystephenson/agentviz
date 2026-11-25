@@ -59,13 +59,25 @@ its layout.
 behind two ports with one adapter per outside system. `build_feed()` turns
 `~/.claude/sessions` + transcripts into the document in
 [docs/FEED.md](docs/FEED.md); `python3 -m agentfeed serve` serves it next to a
-visualization's `web/` dir. Each visualization vendors a copy with
-`tools/vendor-feed.sh <repo>` (it writes `vendor/agentfeed/PIN`).
+visualization's `web/` dir.
+
+## The shared kit
+
+`kit/` is everything a visualization needs around its scene: the feed client
+(polling, diffing, an explicit "unreachable" state), the HUD (the "needs you"
+chip, the selected-agent panel and phone bottom sheet, the demo-feed badge,
+the legend), world labels and tap picking, one page-to-engine data format
+(`agentviz-wire.js` packs, `agentviz.h` decodes), the scene build and the
+browser-test harness. See [docs/KIT.md](docs/KIT.md). Each visualization
+vendors agentfeed and the kit with `tools/vendor-kit.sh <repo>` (it writes
+`vendor/agentfeed/` and `vendor/agentviz-kit/`, each with a `PIN`, and copies
+the page files into the repo's `web/`).
 
 ```bash
 python3 -m agentfeed dump --fixture     # the demo feed
 python3 -m agentfeed dump               # this machine, now
-python3 -m unittest discover -s tests
+python3 -m unittest discover -s tests   # agentfeed, plus the kit's native header test (g++)
+node --test tests/kit/*.test.js         # the kit's feed and wire unit tests
 ```
 
 Building a scene: [docs/BUILDING.md](docs/BUILDING.md).
