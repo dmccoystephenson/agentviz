@@ -9,8 +9,8 @@ keeps only its metaphor: the layout, the motion and the drawing.
 | File | What it is for |
 |---|---|
 | `kit/web/agentviz-feed.js` | `AgentvizFeed`: polls `/api/agents` every 2 s (`?fixture=1` / `?demo=1` pick the demo feed), keys sessions and followers by id, reports added / removed / changed and new tool calls, backs off on failure with an explicit `"unreachable"` status. Also `fnv1a`, `seedOf` (identical to Python's `seed_of`), `ease`, `lerp`, `smoothstep`. |
-| `kit/web/agentviz-hud.js` + `agentviz-hud.css` | `AgentvizHud`: top bar (title, "needs you" chip that cycles waiting sessions and says why each waits, counts, demo-feed badge, the page's buttons, legend toggle), unreachable banner, empty-state hint, and the selection panel (a card on desktop, a bottom sheet with a swipe-down grab on phones). |
-| `kit/web/agentviz-screen.js` | `AgentvizScreen`: action icons, state dots, a keyed world-label pool for `StrataKit.placeLabels`, and nearest-point tap picking. |
+| `kit/web/agentviz-hud.js` + `agentviz-hud.css` | `AgentvizHud`: top bar (title, "needs you" chip that cycles waiting sessions and says why each waits, counts, demo-feed badge, the page's buttons, legend toggle), unreachable banner, empty-state hint, and the selection panel (a card on desktop, a bottom sheet with a swipe-down grab on phones). Opt-in one-row phone bar; the panel's resting rect, the uncovered area and keep-clear label placement (see "Phones"). |
+| `kit/web/agentviz-screen.js` | `AgentvizScreen`: action icons, state dots, a keyed world-label pool for `StrataKit.placeLabels`, nearest-point tap picking, and the pure maths behind "Phones": `keepClear`, `freeArea`, `projectWith`, `aim`, `reveal`, `fitPoints`, `sameView`. |
 | `kit/web/agentviz-wire.js` | `AgentvizWire`: packs one frame into a `Float32Array` (layout below) and hands it to the engine. |
 | `kit/scene/agentviz.h` | Decodes that buffer in the scene; the vocabulary enums, `seed_of`, easing. Header-only C++17, no Strata dependency. |
 | `kit/scene/build-scene.sh` | Downloads the pinned Strata 0.10.0 wasm tarball, checks its SHA-256, activates emsdk from `$EMSDK`, runs the tarball's `kit/build-kit.sh` with the repo's `scene/kit.conf`. |
@@ -33,7 +33,9 @@ so a button is never replaced under a finger between polls.
 2. Page: load, in order, `strata-loader.js`, `strata-kit.js`,
    `agentviz-feed.js`, `agentviz-screen.js`, `agentviz-hud.js`,
    `agentviz-wire.js`, then the viz's own scripts; link `agentviz-hud.css` and
-   theme it by overriding the `--av-*` custom properties.
+   theme it by overriding the `--av-*` custom properties. `--av-badge` (the
+   demo-feed badge) defaults to `--av-note` and can be set on its own; the
+   "need you" chip's throb follows `--av-wait`.
 
    ```js
    const hud = AgentvizHud.create({title: "Agent Office", legend: document.getElementById("legend"),
@@ -55,6 +57,88 @@ so a button is never replaced under a finger between polls.
    `pip install -r requirements-dev.txt` (Pillow) for the GIF. Build the smoke
    test and screenshots on `harness.cjs` / `screens.cjs`; give each repo its
    own test port. Screenshots come from `?fixture=1` only, never a live feed.
+
+## Phones
+
+Every viz needs the same three things on a phone: a top bar that keeps to
+one row, world labels that stay out from under the bar and the bottom sheet,
+and a tap that slides what was tapped out from under the sheet. All of it is
+opt-in; a page that uses none of it looks and behaves as before.
+
+**Bar classes.** Each count chip is `av-chip av-count av-count-<key>` (`busy`,
+`followers`, `idle`, `offline`; `AgentvizHud.countClass(key)`), the page's
+buttons and the legend toggle are `av-btn` (the toggle also `av-legend-btn`),
+and the demo badge reads `demo` + `<span class="av-badge-more"> feed</span>`.
+Style or hide a chip by class, never by `title` or `:has()`. `hud.bar` is
+the bar element.
+
+**One row.** `AgentvizHud.create({oneRow: true, ...})` adds `av-one-row` to
+the bar and puts the counts and the badge in `.av-bar-scroll`. On a desktop
+that wrapper is `display: contents`, so nothing moves. At 640px and below the
+bar does not wrap (`white-space: nowrap`), the title and " feed" give way, the
+"need you" chip and the buttons stay put, and the counts scroll sideways
+between them. A page that wants fewer counts hides them by class:
+`.av-one-row .av-count-offline { display: none; }`. A page that inserts its
+own button into the bar (`bar.insertBefore(b, bar.lastElementChild)`) still
+lands among the fixed buttons.
+
+**Keep-clear labels.** Instead of `StrataKit.placeLabels(items)`:
+
+```js
+hud.placeLabels(items, {canvas});   // keepClear, then StrataKit.placeLabels
+```
+
+`hud.clearArea(canvas)` measures `{W, H, top, avoid}` in canvas pixels: the
+bar's foot (+4px) and the open panel's resting rect and the open legend
+(each padded 4px). `AgentvizScreen.keepClear(items, area)` then, before
+placement: clamps each label inside the screen's sides once it has been
+measured (a rank > 0 label whose anchor is off the side is left to fall off;
+a rank <= 0 one is pulled in); hides a label under the panel or legend
+(rank <= 0 stays); hides a label that reaches into the top band, or for
+rank <= 0 pins it just under the band, stacked downwards clear of other
+pinned labels; and caps `tries` near the band so no label steps up into it.
+It replaces `q` and never mutates it. Options (`{keep: {...}}` on
+`hud.placeLabels`): `margin` (4), `gap` (2, as placeLabels), `labelH` (18,
+before a label is measured). `{place: {...}}` passes options on to
+`StrataKit.placeLabels`.
+
+Strata kit 1.4 (Strata PRs #122/#123, not merged when this was written) adds
+`topInset` / `avoid` to `placeLabels` itself. Once a viz vendors it,
+`hud.placeLabels(items, {canvas, strataAvoid: true})` hands the same area
+over as `AgentvizScreen.strataAvoid(area)` = `{topInset, avoid: [{left, top,
+right, bottom}]}` and keepClear only clamps the sides. That shape is the one
+the PRs propose: check it against the merged API before switching.
+
+**Tap-to-reveal.** `hud.panelRect()` is the panel's resting rect in viewport
+pixels (from `offset*`, so it is right while the sheet is still sliding in),
+with `sheet: true` when it spans the width, or null while closed.
+`hud.freeRect(canvas, {panel: true})` is the area nothing covers: below the
+bar and, with the panel open, above the sheet or beside the card (whichever
+leaves more). The camera maths is Strata's orbit camera (`sk_frame`, 50°
+vertical field of view) as plain functions, so a view can be fitted before it
+is drawn:
+
+```js
+const {reveal, fitPoints, sameView} = AgentvizScreen;
+function onSelect(target, how) {          // the HUD has drawn the panel already
+  const p = worldPointOf(target);         // [x, y, z]
+  const to = reveal(kit.cam, p, hud.freeRect(canvas), how === "tap" ? {} : {set: {dist: 16}, force: true});
+  if (to) flyTo(to);                      // null: already in view, the camera stays
+}
+let lastFit = null;
+function fit() { lastFit = fitPoints(startCam, cornersOfTheWorld, hud.freeRect(canvas, {panel: false})); flyTo(lastFit); }
+addEventListener("resize", () => requestAnimationFrame(() => { if (sameView(kit.cam, lastFit)) fit(); }));
+```
+
+`reveal(cam, p, free, o)`: null when `p` is inside `free` by `o.pad` (40, or
+`{top, right, bottom, left}`) unless `o.force`; otherwise a copy of `cam`
+(with `o.set` applied) aimed so `p` sits at the free area's middle, `o.dy`
+(20) px low. `aim(cam, x, y, z, sx, sy, W, H)` moves only the target.
+`fitPoints(cam, points, free, {mid, minDist, maxDist, inset, iterations})`
+keeps `cam`'s yaw and pitch. `projectWith(cam, x, y, z, W, H)` returns
+`{x, y, w}` like `kit.project`; keep it in step with `strata_kit.h` (a page
+test can compare the two). A page that follows a moving thing (atc) can call
+`reveal(..., {force: true})` each frame and ease towards the result.
 
 ## Wire (format version 1)
 
@@ -133,7 +217,7 @@ last good frame stays. A change to this layout bumps the format version in
 
 ```bash
 python3 -m unittest discover -s tests     # includes the g++ test of agentviz.h and the vendoring check
-node --test tests/kit/*.test.js           # feed diffing and wire packing, no dependencies
+node --test tests/kit/*.test.js           # feed diffing, wire packing, phone maths, no dependencies
 node tests/kit/pack_fixture.js --write    # after a deliberate wire change: regenerate the fixture
 ```
 
